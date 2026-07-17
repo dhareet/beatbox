@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BeatBox</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #080a0f;
+  --surface: #0e1118;
+  --card: #141720;
+  --border: #1e2330;
+  --accent: #1db954;
+  --accent-dim: rgba(29,185,84,0.15);
+  --red: #ff4757;
+  --text: #e8eaf0;
+  --muted: #525870;
+  --player-h: 80px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;}
+
+/* ── LAYOUT ── */
+.layout{display:flex;flex:1;overflow:hidden;}
+.sidebar{width:240px;min-width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:0;}
+.main{flex:1;overflow-y:auto;padding:2rem;}
+.player{height:var(--player-h);background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;padding:0 1.5rem;gap:1.5rem;}
+
+/* ── SIDEBAR ── */
+.logo{padding:1.5rem 1.25rem 1rem;font-size:1.5rem;font-weight:800;letter-spacing:-0.02em;}
+.logo span{color:var(--accent);}
+nav{padding:0.5rem 0.75rem;flex:1;}
+.nav-item{display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.75rem;border-radius:8px;cursor:pointer;font-size:0.9rem;font-weight:600;color:var(--muted);transition:all 0.15s;margin-bottom:2px;}
+.nav-item:hover,.nav-item.active{background:var(--card);color:var(--text);}
+.nav-item.active .nav-icon{color:var(--accent);}
+.nav-icon{font-size:1rem;width:20px;text-align:center;}
+.nav-section{padding:1.25rem 1.5rem 0.5rem;font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);font-family:'DM Mono',monospace;}
+.sidebar-footer{padding:1rem 1.25rem;border-top:1px solid var(--border);}
+.user-pill{display:flex;align-items:center;gap:0.6rem;font-size:0.82rem;font-weight:600;}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#0a8c38);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:#000;flex-shrink:0;}
+.badge-free{font-size:0.55rem;font-family:'DM Mono',monospace;letter-spacing:0.1em;padding:2px 6px;border-radius:3px;background:var(--border);color:var(--muted);text-transform:uppercase;}
+.badge-premium{background:rgba(29,185,84,0.15);color:var(--accent);}
+
+/* ── TOP BAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;gap:1rem;}
+.search-wrap{flex:1;max-width:420px;position:relative;}
+.search-wrap input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:0.6rem 1rem 0.6rem 2.5rem;color:var(--text);font-family:'Syne',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s;}
+.search-wrap input:focus{border-color:var(--accent);}
+.search-icon{position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.9rem;}
+.btn{padding:0.5rem 1.1rem;border-radius:7px;border:none;font-family:'Syne',sans-serif;font-weight:700;font-size:0.82rem;cursor:pointer;transition:all 0.15s;}
+.btn-primary{background:var(--accent);color:#000;}
+.btn-primary:hover{background:#1ed760;}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-ghost:hover{border-color:var(--text);color:var(--text);}
+.btn-sm{padding:0.35rem 0.75rem;font-size:0.75rem;}
+
+/* ── PAGE TITLES ── */
+.page-title{font-size:2rem;font-weight:800;letter-spacing:-0.02em;margin-bottom:0.25rem;}
+.page-sub{font-size:0.85rem;color:var(--muted);margin-bottom:2rem;}
+
+/* ── GENRE CHIPS ── */
+.genre-row{display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.75rem;}
+.genre-chip{padding:0.35rem 0.9rem;border-radius:20px;border:1px solid var(--border);font-size:0.75rem;font-weight:600;cursor:pointer;transition:all 0.15s;color:var(--muted);}
+.genre-chip:hover,.genre-chip.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+
+/* ── SONG TABLE ── */
+.song-table{width:100%;border-collapse:collapse;}
+.song-table thead th{font-size:0.65rem;font-family:'DM Mono',monospace;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);padding:0 0.75rem 0.75rem;text-align:left;border-bottom:1px solid var(--border);}
+.song-table thead th:last-child{text-align:right;}
+.song-row{border-bottom:1px solid rgba(30,35,48,0.5);transition:background 0.1s;}
+.song-row:hover{background:var(--card);}
+.song-row td{padding:0.65rem 0.75rem;font-size:0.88rem;}
+.song-num{font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted);width:32px;}
+.song-row:hover .song-num{display:none;}
+.play-btn-inline{display:none;background:none;border:none;color:var(--accent);cursor:pointer;font-size:1rem;width:32px;}
+.song-row:hover .play-btn-inline{display:block;}
+.song-title-cell{font-weight:600;}
+.song-artist{font-size:0.78rem;color:var(--muted);margin-top:1px;}
+.duration-cell{font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--muted);text-align:right;}
+.like-btn{background:none;border:none;cursor:pointer;font-size:1rem;color:var(--muted);transition:color 0.15s;padding:0 0.25rem;}
+.like-btn:hover,.like-btn.liked{color:var(--red);}
+.add-pl-btn{background:none;border:none;cursor:pointer;font-size:0.8rem;color:var(--muted);transition:color 0.15s;padding:0 0.25rem;}
+.add-pl-btn:hover{color:var(--accent);}
+
+/* ── CARDS ── */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-top:1rem;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.25rem 1rem;cursor:pointer;transition:all 0.2s;}
+.card:hover{transform:translateY(-4px);border-color:rgba(29,185,84,0.3);}
+.card-art{width:100%;aspect-ratio:1;border-radius:8px;background:linear-gradient(135deg,#1e2330 0%,#0e1118 100%);display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin-bottom:0.75rem;}
+.card-name{font-weight:700;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-sub{font-size:0.75rem;color:var(--muted);margin-top:2px;}
+
+/* ── PLAYLIST SECTION ── */
+.pl-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;}
+.pl-list{display:flex;flex-direction:column;gap:0.5rem;margin-bottom:2rem;}
+.pl-item{display:flex;align-items:center;gap:1rem;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;cursor:pointer;transition:all 0.15s;}
+.pl-item:hover{border-color:rgba(29,185,84,0.3);}
+.pl-art{width:42px;height:42px;border-radius:6px;background:linear-gradient(135deg,var(--accent-dim),#0e1118);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+.pl-name{font-weight:700;font-size:0.9rem;}
+.pl-count{font-size:0.75rem;color:var(--muted);}
+.pl-delete{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;padding:0.25rem;}
+.pl-delete:hover{color:var(--red);}
+
+/* ── PLAYER ── */
+.player-info{display:flex;align-items:center;gap:0.75rem;min-width:200px;flex:1;}
+.player-art{width:48px;height:48px;border-radius:6px;background:linear-gradient(135deg,#1e2330,#080a0f);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+.player-title{font-weight:700;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;}
+.player-artist{font-size:0.75rem;color:var(--muted);}
+.player-controls{display:flex;align-items:center;gap:0.75rem;flex:1;justify-content:center;}
+.ctrl-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;transition:color 0.15s;}
+.ctrl-btn:hover{color:var(--text);}
+.play-pause{width:38px;height:38px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;font-size:1rem;color:#000;transition:transform 0.1s;}
+.play-pause:hover{transform:scale(1.06);}
+.progress-wrap{display:flex;align-items:center;gap:0.5rem;flex:1;max-width:400px;}
+.progress-track{flex:1;height:4px;background:var(--border);border-radius:2px;position:relative;cursor:pointer;}
+.progress-fill{height:100%;border-radius:2px;background:var(--accent);transition:width 0.5s linear;}
+.time-label{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);white-space:nowrap;}
+.vol-wrap{display:flex;align-items:center;gap:0.5rem;min-width:120px;}
+.vol-slider{-webkit-appearance:none;appearance:none;width:80px;height:3px;border-radius:2px;background:var(--border);outline:none;}
+.vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer;}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;width:90%;max-width:400px;}
+.modal h3{font-size:1.2rem;font-weight:800;margin-bottom:1.25rem;}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:0.75rem;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:0.4rem;letter-spacing:0.1em;text-transform:uppercase;}
+.form-group input,.form-group select{width:100%;background:var(--card);border:1px solid var(--border);border-radius:7px;padding:0.6rem 0.9rem;color:var(--text);font-family:'Syne',sans-serif;font-size:0.9rem;outline:none;}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent);}
+.modal-actions{display:flex;gap:0.75rem;margin-top:1.5rem;justify-content:flex-end;}
+.toast{position:fixed;bottom:calc(var(--player-h) + 1rem);left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:8px;padding:0.7rem 1.25rem;font-size:0.85rem;z-index:200;animation:toastIn 0.2s ease;pointer-events:none;}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(10px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+
+/* ── HIDDEN ── */
+.hidden{display:none!important;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* ── AUTH PAGE ── */
+#auth-page{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;align-items:center;justify-content:center;}
+.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2.5rem;width:90%;max-width:380px;}
+.auth-logo{font-size:2rem;font-weight:800;margin-bottom:0.25rem;}
+.auth-logo span{color:var(--accent);}
+.auth-sub{font-size:0.82rem;color:var(--muted);margin-bottom:2rem;}
+.auth-tabs{display:flex;gap:0;margin-bottom:1.5rem;background:var(--card);border-radius:8px;padding:3px;}
+.auth-tab{flex:1;text-align:center;padding:0.5rem;border-radius:6px;cursor:pointer;font-size:0.85rem;font-weight:600;color:var(--muted);transition:all 0.15s;}
+.auth-tab.active{background:var(--accent);color:#000;}
+.err-msg{color:var(--red);font-size:0.8rem;margin-top:0.5rem;}
+</style>
+</head>
+<body>
+
+<!-- AUTH PAGE -->
+<div id="auth-page">
+  <div class="auth-box">
+    <div class="auth-logo">Beat<span>Box</span></div>
+    <div class="auth-sub">Music that moves you.</div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="switchTab('login')">Login</div>
+      <div class="auth-tab" onclick="switchTab('register')">Register</div>
+    </div>
+
+    <div id="login-form">
+      <div class="form-group"><label>Email</label><input id="li-email" type="email" placeholder="you@email.com"/></div>
+      <div class="form-group"><label>Password</label><input id="li-pass" type="password" placeholder="••••••••"/></div>
+      <div id="li-err" class="err-msg hidden"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:0.5rem" onclick="doLogin()">Log In</button>
+      <p style="font-size:0.75rem;color:var(--muted);margin-top:1rem;text-align:center">Demo: demo@beatbox.com / password123</p>
+    </div>
+
+    <div id="register-form" class="hidden">
+      <div class="form-group"><label>Name</label><input id="re-name" type="text" placeholder="Your Name"/></div>
+      <div class="form-group"><label>Email</label><input id="re-email" type="email" placeholder="you@email.com"/></div>
+      <div class="form-group"><label>Password</label><input id="re-pass" type="password" placeholder="Min 6 chars"/></div>
+      <div id="re-err" class="err-msg hidden"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:0.5rem" onclick="doRegister()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo">Beat<span>Box</span></div>
+    <nav>
+      <div class="nav-item active" onclick="showPage('home')" id="nav-home"><span class="nav-icon">🏠</span>Home</div>
+      <div class="nav-item" onclick="showPage('search')" id="nav-search"><span class="nav-icon">🔍</span>Search</div>
+      <div class="nav-item" onclick="showPage('liked')" id="nav-liked"><span class="nav-icon">❤️</span>Liked Songs</div>
+      <div class="nav-section">Library</div>
+      <div class="nav-item" onclick="showPage('playlists')" id="nav-playlists"><span class="nav-icon">📋</span>Playlists</div>
+      <div class="nav-item" onclick="showPage('artists')" id="nav-artists"><span class="nav-icon">🎤</span>Artists</div>
+      <div class="nav-section">Account</div>
+      <div class="nav-item" onclick="showPage('profile')" id="nav-profile"><span class="nav-icon">👤</span>Profile</div>
+      <div class="nav-item" onclick="doLogout()"><span class="nav-icon">🚪</span>Logout</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="avatar" id="sb-avatar">?</div>
+        <div>
+          <div id="sb-name" style="font-size:0.82rem;font-weight:700"></div>
+          <span class="badge-free" id="sb-badge">FREE</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+    <!-- HOME -->
+    <div class="page active" id="page-home">
+      <div class="page-title">Good evening 👋</div>
+      <div class="page-sub">Pick up where you left off</div>
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;">🔥 Top Charts</h3>
+      <div id="home-songs"></div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="page" id="page-search">
+      <div class="page-title">Search</div>
+      <div class="page-sub">Find your favourite music</div>
+      <div class="topbar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input id="search-input" type="text" placeholder="Search songs, artists..." oninput="handleSearch()"/>
+        </div>
+      </div>
+      <div class="genre-row" id="genre-row"></div>
+      <div id="search-results"></div>
+    </div>
+
+    <!-- LIKED -->
+    <div class="page" id="page-liked">
+      <div class="page-title">Liked Songs ❤️</div>
+      <div class="page-sub" id="liked-sub"></div>
+      <div id="liked-songs"></div>
+    </div>
+
+    <!-- PLAYLISTS -->
+    <div class="page" id="page-playlists">
+      <div class="pl-header">
+        <div>
+          <div class="page-title">Your Playlists</div>
+          <div class="page-sub">Collections you've curated</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openCreatePlaylist()">+ New Playlist</button>
+      </div>
+      <div id="pl-list"></div>
+      <div id="pl-detail" class="hidden">
+        <button class="btn btn-ghost btn-sm" style="margin-bottom:1rem" onclick="closePlaylistDetail()">← Back</button>
+        <div id="pl-detail-content"></div>
+      </div>
+    </div>
+
+    <!-- ARTISTS -->
+    <div class="page" id="page-artists">
+      <div class="page-title">Artists</div>
+      <div class="page-sub">Browse all artists</div>
+      <div class="cards-grid" id="artist-grid"></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="page" id="page-profile">
+      <div class="page-title">Your Profile</div>
+      <div class="page-sub">Account details & subscription</div>
+      <div id="profile-content"></div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- PLAYER BAR -->
+<div class="player" id="player-bar">
+  <div class="player-info">
+    <div class="player-art" id="pl-art">🎵</div>
+    <div>
+      <div class="player-title" id="pl-title">No song playing</div>
+      <div class="player-artist" id="pl-artist">—</div>
+    </div>
+  </div>
+  <div style="flex:2;display:flex;flex-direction:column;align-items:center;gap:0.4rem;">
+    <div class="player-controls">
+      <button class="ctrl-btn" onclick="prevSong()">⏮</button>
+      <button class="play-pause" id="play-pause-btn" onclick="togglePlay()">▶</button>
+      <button class="ctrl-btn" onclick="nextSong()">⏭</button>
+    </div>
+    <div class="progress-wrap">
+      <span class="time-label" id="time-cur">0:00</span>
+      <div class="progress-track" onclick="seekTo(event)">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+      <span class="time-label" id="time-total">0:00</span>
+    </div>
+  </div>
+  <div class="vol-wrap">
+    <span style="font-size:0.9rem">🔊</span>
+    <input class="vol-slider" type="range" min="0" max="100" value="80" oninput="setVolume(this.value)"/>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay hidden" id="modal-create-pl">
+  <div class="modal">
+    <h3>New Playlist</h3>
+    <div class="form-group"><label>Playlist Name</label><input id="pl-name-input" type="text" placeholder="My Playlist"/></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-create-pl')">Cancel</button>
+      <button class="btn btn-primary" onclick="createPlaylist()">Create</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="modal-add-to-pl">
+  <div class="modal">
+    <h3>Add to Playlist</h3>
+    <div id="modal-pl-list" style="display:flex;flex-direction:column;gap:0.5rem;max-height:260px;overflow-y:auto;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-to-pl')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="modal-payment">
+  <div class="modal">
+    <h3>Upgrade to Premium 🎵</h3>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1.25rem">₹199/month — unlimited songs, no ads.</p>
+    <div class="form-group">
+      <label>Payment Mode</label>
+      <select id="pay-mode">
+        <option value="upi">UPI</option>
+        <option value="credit_card">Credit Card</option>
+        <option value="debit_card">Debit Card</option>
+        <option value="netbanking">Netbanking</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-payment')">Cancel</button>
+      <button class="btn btn-primary" onclick="makePremium()">Pay ₹199</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────
+const API = '/api';
+let token = localStorage.getItem('bb_token');
+let currentUser = null;
+let allSongs = [];
+let queue = [];
+let queueIdx = -1;
+let playing = false;
+let songTimer = null;
+let elapsed = 0;
+let addToPlSongId = null;
+
+// ── UTILS ───────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const fmtDur = s => `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+
+function toast(msg, ms=2200){
+  const el = document.createElement('div');
+  el.className = 'toast'; el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), ms);
+}
+
+async function apiFetch(path, opts={}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(API + path, { ...opts, headers });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+// ── AUTH ────────────────────────────────────────────────────
+function switchTab(tab) {
+  $('login-form').classList.toggle('hidden', tab !== 'login');
+  $('register-form').classList.toggle('hidden', tab !== 'register');
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+}
+
+async function doLogin() {
+  const email = $('li-email').value, password = $('li-pass').value;
+  try {
+    const data = await apiFetch('/auth/login', { method:'POST', body: JSON.stringify({email,password}) });
+    token = data.token; localStorage.setItem('bb_token', token);
+    currentUser = data; bootApp();
+  } catch(e) { showErr('li-err', e.message); }
+}
+
+async function doRegister() {
+  const name=$('re-name').value, email=$('re-email').value, password=$('re-pass').value;
+  try {
+    const data = await apiFetch('/auth/register', { method:'POST', body: JSON.stringify({name,email,password}) });
+    token = data.token; localStorage.setItem('bb_token', token);
+    currentUser = data; bootApp();
+  } catch(e) { showErr('re-err', e.message); }
+}
+
+function showErr(id, msg){ const el=$(id); el.textContent=msg; el.classList.remove('hidden'); }
+
+function doLogout() {
+  token = null; localStorage.removeItem('bb_token');
+  location.reload();
+}
+
+// ── BOOT ────────────────────────────────────────────────────
+async function bootApp() {
+  $('auth-page').style.display = 'none';
+  try { currentUser = await apiFetch('/users/me'); } catch(e){}
+  updateSidebar();
+  loadHome();
+  loadGenres();
+  loadArtists();
+}
+
+function updateSidebar() {
+  if (!currentUser) return;
+  const n = currentUser.name || '';
+  $('sb-name').textContent = n.split(' ')[0];
+  $('sb-avatar').textContent = n.charAt(0).toUpperCase();
+  const badge = $('sb-badge');
+  badge.textContent = currentUser.subscription_type === 'premium' ? 'PREMIUM' : 'FREE';
+  badge.className = 'badge-' + (currentUser.subscription_type || 'free');
+}
+
+// ── PAGE NAV ────────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  $('page-' + name).classList.add('active');
+  $('nav-' + name)?.classList.add('active');
+  if (name === 'liked')     loadLiked();
+  if (name === 'playlists') loadPlaylists();
+  if (name === 'profile')   loadProfile();
+}
+
+// ── HOME ────────────────────────────────────────────────────
+async function loadHome() {
+  try {
+    allSongs = await apiFetch('/songs');
+    const top = await apiFetch('/songs/top');
+    const container = $('home-songs');
+    const display = top.length ? top : allSongs.slice(0,10);
+    queue = display;
+    container.innerHTML = renderSongTable(display);
+  } catch(e) { console.error(e); }
+}
+
+// ── SEARCH ──────────────────────────────────────────────────
+async function loadGenres() {
+  const genres = await apiFetch('/genres');
+  const row = $('genre-row');
+  row.innerHTML = '<div class="genre-chip active" onclick="filterGenre(null,this)">All</div>' +
+    genres.map(g => `<div class="genre-chip" onclick="filterGenre('${g.genre_name}',this)">${g.genre_name}</div>`).join('');
+  renderSearch(allSongs);
+}
+
+let activeGenre = null;
+function filterGenre(genre, el) {
+  activeGenre = genre;
+  document.querySelectorAll('.genre-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  handleSearch();
+}
+
+function handleSearch() {
+  const q = $('search-input').value.toLowerCase();
+  let filtered = allSongs;
+  if (activeGenre) filtered = filtered.filter(s => s.genre_name === activeGenre);
+  if (q) filtered = filtered.filter(s =>
+    s.title.toLowerCase().includes(q) || s.artist_name?.toLowerCase().includes(q)
+  );
+  renderSearch(filtered);
+}
+
+function renderSearch(songs) {
+  $('search-results').innerHTML = renderSongTable(songs);
+}
+
+// ── LIKED ───────────────────────────────────────────────────
+async function loadLiked() {
+  const songs = await apiFetch('/users/me/liked');
+  $('liked-sub').textContent = `${songs.length} liked song${songs.length!==1?'s':''}`;
+  $('liked-songs').innerHTML = songs.length
+    ? renderSongTable(songs)
+    : '<p style="color:var(--muted);padding:2rem 0">No liked songs yet. Hit ❤️ on any song!</p>';
+}
+
+// ── SONG TABLE ──────────────────────────────────────────────
+function renderSongTable(songs) {
+  if (!songs.length) return '<p style="color:var(--muted);padding:2rem 0">No songs found.</p>';
+  return `<table class="song-table">
+    <thead><tr>
+      <th>#</th><th>Title</th><th>Album</th><th>Genre</th><th style="text-align:right">⏱</th><th></th>
+    </tr></thead>
+    <tbody>
+    ${songs.map((s,i) => `
+      <tr class="song-row" ondblclick="playSong(${i},${JSON.stringify(songs).replace(/"/g,'&quot;')})">
+        <td><span class="song-num">${i+1}</span>
+            <button class="play-btn-inline" onclick="playSong(${i},${JSON.stringify(songs).replace(/"/g,'&quot;')})">▶</button></td>
+        <td class="song-title-cell">${s.title}<div class="song-artist">${s.artist_name||''}</div></td>
+        <td style="color:var(--muted);font-size:0.82rem">${s.album_title||'—'}</td>
+        <td style="color:var(--muted);font-size:0.78rem">${s.genre_name||'—'}</td>
+        <td class="duration-cell">${fmtDur(s.duration||0)}</td>
+        <td style="white-space:nowrap">
+          <button class="like-btn" onclick="toggleLike(${s.song_id},this)" title="Like">❤</button>
+          <button class="add-pl-btn" onclick="openAddToPlaylist(${s.song_id})" title="Add to playlist">＋</button>
+        </td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+
+// ── PLAYER ──────────────────────────────────────────────────
+function playSong(idx, songs) {
+  if (typeof songs === 'string') songs = JSON.parse(songs);
+  queue = songs; queueIdx = idx;
+  const song = queue[queueIdx];
+  $('pl-title').textContent  = song.title;
+  $('pl-artist').textContent = song.artist_name || '—';
+  $('time-total').textContent = fmtDur(song.duration || 0);
+  elapsed = 0; $('progress-fill').style.width = '0%'; $('time-cur').textContent = '0:00';
+  startPlayback(song);
+}
+
+function startPlayback(song) {
+  clearInterval(songTimer);
+  playing = true; $('play-pause-btn').textContent = '⏸';
+  const dur = song.duration || 180;
+  songTimer = setInterval(() => {
+    if (!playing) return;
+    elapsed++;
+    $('time-cur').textContent = fmtDur(elapsed);
+    $('progress-fill').style.width = Math.min(100, (elapsed/dur)*100) + '%';
+    if (elapsed >= dur) { clearInterval(songTimer); nextSong(); }
+  }, 1000);
+  if (token) apiFetch(`/songs/${song.song_id}/play`, { method:'POST', body: JSON.stringify({play_time: song.duration}) }).catch(()=>{});
+}
+
+function togglePlay() {
+  if (!queue.length) return;
+  playing = !playing;
+  $('play-pause-btn').textContent = playing ? '⏸' : '▶';
+}
+
+function prevSong() { if (queueIdx > 0) playSong(queueIdx-1, queue); }
+function nextSong() { if (queueIdx < queue.length-1) playSong(queueIdx+1, queue); }
+
+function seekTo(e) {
+  if (!queue[queueIdx]) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pct  = (e.clientX - rect.left) / rect.width;
+  elapsed = Math.floor(pct * (queue[queueIdx].duration||180));
+}
+
+function setVolume(v) { /* would apply to Audio element in real implementation */ }
+
+// ── LIKES ───────────────────────────────────────────────────
+async function toggleLike(songId, btn) {
+  const liked = btn.classList.contains('liked');
+  try {
+    if (liked) {
+      await apiFetch(`/songs/${songId}/like`, { method:'DELETE' });
+      btn.classList.remove('liked'); toast('Removed from liked songs');
+    } else {
+      await apiFetch(`/songs/${songId}/like`, { method:'POST' });
+      btn.classList.add('liked'); toast('Added to liked songs ❤️');
+    }
+  } catch(e) { toast('Login required'); }
+}
+
+// ── PLAYLISTS ───────────────────────────────────────────────
+async function loadPlaylists() {
+  $('pl-detail').classList.add('hidden');
+  $('pl-list').classList.remove('hidden');
+  try {
+    const pls = await apiFetch('/playlists');
+    $('pl-list').innerHTML = pls.length
+      ? pls.map(p => `<div class="pl-item" onclick="openPlaylistDetail(${p.playlist_id})">
+          <div class="pl-art">📋</div>
+          <div><div class="pl-name">${p.playlist_name}</div><div class="pl-count">${p.created_date}</div></div>
+          <button class="pl-delete" onclick="event.stopPropagation();deletePlaylist(${p.playlist_id})">🗑</button>
+        </div>`).join('')
+      : '<p style="color:var(--muted);padding:1rem 0">No playlists yet. Create one!</p>';
+  } catch(e) { $('pl-list').innerHTML = '<p style="color:var(--muted)">Login to see playlists</p>'; }
+}
+
+async function openPlaylistDetail(id) {
+  $('pl-list').classList.add('hidden');
+  $('pl-detail').classList.remove('hidden');
+  const pl = await apiFetch(`/playlists/${id}`);
+  queue = pl.songs;
+  $('pl-detail-content').innerHTML = `
+    <div class="page-title">${pl.playlist_name}</div>
+    <div class="page-sub">Created ${pl.created_date} · ${pl.songs.length} songs</div>
+    ${renderSongTable(pl.songs)}`;
+}
+
+function closePlaylistDetail() { loadPlaylists(); }
+
+function openCreatePlaylist() {
+  $('pl-name-input').value = '';
+  $('modal-create-pl').classList.remove('hidden');
+}
+
+async function createPlaylist() {
+  const name = $('pl-name-input').value.trim();
+  if (!name) return;
+  try {
+    await apiFetch('/playlists', { method:'POST', body: JSON.stringify({playlist_name:name}) });
+    closeModal('modal-create-pl'); toast('Playlist created! 🎶'); loadPlaylists();
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function deletePlaylist(id) {
+  if (!confirm('Delete this playlist?')) return;
+  await apiFetch(`/playlists/${id}`, { method:'DELETE' });
+  toast('Playlist deleted'); loadPlaylists();
+}
+
+async function openAddToPlaylist(songId) {
+  addToPlSongId = songId;
+  const pls = await apiFetch('/playlists');
+  $('modal-pl-list').innerHTML = pls.map(p =>
+    `<div class="pl-item" style="cursor:pointer" onclick="addSongToPlaylist(${p.playlist_id})">
+      <div class="pl-art" style="width:32px;height:32px;font-size:0.9rem">📋</div>
+      <div class="pl-name">${p.playlist_name}</div>
+    </div>`).join('') || '<p style="color:var(--muted)">No playlists. Create one first.</p>';
+  $('modal-add-to-pl').classList.remove('hidden');
+}
+
+async function addSongToPlaylist(plId) {
+  await apiFetch(`/playlists/${plId}/songs`, { method:'POST', body: JSON.stringify({song_id:addToPlSongId}) });
+  closeModal('modal-add-to-pl'); toast('Added to playlist ✅');
+}
+
+// ── ARTISTS ─────────────────────────────────────────────────
+async function loadArtists() {
+  const artists = await apiFetch('/artists');
+  const emojis = ['🎤','🎸','🎹','🥁','🎺','🎻','🎷','🪗'];
+  $('artist-grid').innerHTML = artists.map((a,i) => `
+    <div class="card" onclick="showArtistDetail(${a.artist_id})">
+      <div class="card-art">${emojis[i%emojis.length]}</div>
+      <div class="card-name">${a.artist_name}</div>
+      <div class="card-sub">${a.country||''} · ${a.debut_year||''}</div>
+    </div>`).join('');
+}
+
+async function showArtistDetail(id) {
+  const artist = await apiFetch(`/artists/${id}`);
+  const page = $('page-artists');
+  queue = artist.albums.flatMap(al => al.songs.map(s => ({...s, artist_name: artist.artist_name, album_title: al.title})));
+  page.innerHTML = `
+    <button class="btn btn-ghost btn-sm" style="margin-bottom:1.5rem" onclick="loadArtists();$('page-artists').innerHTML='';loadArtists()">← All Artists</button>
+    <div class="page-title">${artist.artist_name}</div>
+    <div class="page-sub">${artist.country||''} · Since ${artist.debut_year||'?'} · ${artist.albums.length} album(s)</div>
+    ${artist.albums.map(al => `
+      <h3 style="font-size:0.9rem;font-weight:700;color:var(--muted);margin:1.5rem 0 0.75rem;font-family:'DM Mono',monospace;letter-spacing:0.1em;text-transform:uppercase">${al.title} (${al.release_date?.slice(0,4)||'?'})</h3>
+      ${renderSongTable(al.songs.map(s => ({...s, artist_name: artist.artist_name, album_title: al.title})))}
+    `).join('')}`;
+}
+
+// ── PROFILE ─────────────────────────────────────────────────
+async function loadProfile() {
+  const user = await apiFetch('/users/me');
+  currentUser = user;
+  updateSidebar();
+  $('profile-content').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;max-width:600px;margin-bottom:2rem">
+      ${[['Name',user.name],['Email',user.email],['Member Since',user.join_date],['Date of Birth',user.date_of_birth||'—']].map(([k,v])=>`
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem">
+          <div style="font-size:0.65rem;font-family:'DM Mono',monospace;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;margin-bottom:0.3rem">${k}</div>
+          <div style="font-weight:600;font-size:0.9rem">${v}</div>
+        </div>`).join('')}
+    </div>
+    <div style="background:var(--card);border:1px solid ${user.subscription_type==='premium'?'rgba(29,185,84,0.4)':'var(--border)'};border-radius:10px;padding:1.5rem;max-width:400px">
+      <div style="font-size:0.7rem;font-family:'DM Mono',monospace;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;margin-bottom:0.5rem">Subscription</div>
+      <div style="font-size:1.4rem;font-weight:800;margin-bottom:0.75rem;color:${user.subscription_type==='premium'?'var(--accent)':'var(--text)'}">
+        ${user.subscription_type==='premium'?'✅ Premium':'🔒 Free Plan'}
+      </div>
+      ${user.subscription_type!=='premium'?`<p style="font-size:0.82rem;color:var(--muted);margin-bottom:1rem">Upgrade to Premium for ₹199/month</p>
+        <button class="btn btn-primary" onclick="$('modal-payment').classList.remove('hidden')">Upgrade to Premium</button>`
+        :'<p style="font-size:0.82rem;color:var(--muted)">You\'re enjoying unlimited music!</p>'}
+    </div>`;
+}
+
+async function makePremium() {
+  const payment_mode = $('pay-mode').value;
+  try {
+    await apiFetch('/users/me/pay', { method:'POST', body: JSON.stringify({amount:199, payment_mode}) });
+    closeModal('modal-payment'); toast('🎉 Welcome to Premium!');
+    currentUser.subscription_type = 'premium'; updateSidebar(); loadProfile();
+  } catch(e) { toast('Payment failed: ' + e.message); }
+}
+
+// ── MODALS ──────────────────────────────────────────────────
+function closeModal(id) { $(id).classList.add('hidden'); }
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-overlay')) e.target.classList.add('hidden');
+});
+
+// ── INIT ────────────────────────────────────────────────────
+if (token) {
+  bootApp();
+} else {
+  $('auth-page').style.display = 'flex';
+}
+</script>
+</body>
+</html>
