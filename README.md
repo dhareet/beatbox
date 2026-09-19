@@ -1,109 +1,159 @@
-# 🎵 BeatBox — Music Streaming App (DBMS Project)
+# 🎵 BeatBox: Music Streaming App (DBMS Project)
 
-**Stack:** MySQL + Node.js/Express + Vanilla HTML/CSS/JS
+A full-stack music streaming web app. Users can register, log in, browse and search songs, like tracks, build playlists, and upgrade from a free to a premium plan.
 
----
+**Stack:** MySQL + Node.js/Express + React (Vite, React Router)
 
-## Project Structure
+> The original course version used a vanilla HTML/CSS/JS frontend. The frontend was later migrated to React; the database and API are unchanged.
+
+## Features
+
+- Register and log in with JWT authentication (bcrypt-hashed passwords)
+- Browse all songs, see the most played, and search by title, artist, album or genre
+- Like and unlike songs (optimistic UI updates)
+- Create, edit and delete playlists; add and remove songs
+- Artist pages with albums and their songs
+- Player bar with queue, play/pause, next/previous and a progress bar (playback is simulated with a timer)
+- Profile page with listening history, payment history, and a Free to Premium upgrade
+
+## Project structure
 
 ```
 beatbox/
+├── backend/            Express API
+│   ├── server.js       Entry point (port 3001)
+│   ├── db.js           MySQL connection pool
+│   ├── middleware/     JWT auth guard
+│   └── routes/         auth, songs, artists, genres, playlists, users
 ├── database/
-│   ├── schema.sql      ← All CREATE TABLE statements + triggers + indexes
-│   ├── seed.sql        ← Sample data (artists, songs, users, playlists)
-│   └── queries.sql     ← Notable SQL queries (joins, subqueries, aggregates)
-├── backend/
-│   ├── server.js       ← Express entry point
-│   ├── db.js           ← MySQL connection pool
-│   ├── .env.example    ← Environment variables template
-│   ├── middleware/
-│   │   └── auth.js     ← JWT authentication middleware
-│   └── routes/
-│       ├── auth.js     ← POST /api/auth/login, /register
-│       ├── songs.js    ← GET/POST /api/songs (search, like, play history)
-│       ├── artists.js  ← GET /api/artists, /artists/:id
-│       ├── playlists.js← Full CRUD playlists + add/remove songs
-│       ├── users.js    ← Profile, liked songs, history, payments
-│       └── genres.js   ← GET /api/genres
-└── frontend/
-    └── public/
-        └── index.html  ← Single-page app (auth, player, search, playlists)
+│   ├── schema.sql      11 tables, indexes, trigger
+│   ├── seed.sql        Sample data
+│   └── queries.sql     Notable queries (joins, aggregates, subqueries)
+└── frontend/           React app (Vite)
+    └── src/
+        ├── context/    AuthContext, PlayerContext, ToastContext
+        ├── components/ Sidebar, SongTable, PlayerBar, Modal, hooks
+        └── pages/      Home, Search, Liked, Playlists, Artists, Profile, ...
 ```
 
----
+## Getting started
 
-## Setup Instructions
+**Prerequisites:** Node.js 18+ and MySQL 8.
 
-### 1. MySQL Database
+### 1. Database
 
-```bash
-# Start MySQL and run:
+Load the schema, then the sample data. MySQL Workbench works well (File > Open SQL Script > Run), or from a terminal:
+
+```
 mysql -u root -p < database/schema.sql
 mysql -u root -p < database/seed.sql
 ```
 
 ### 2. Backend
 
-```bash
+```
 cd backend
-cp .env.example .env
-# Edit .env with your MySQL password and a JWT secret
-
 npm install
-npm run dev        # development (nodemon)
-# or
-npm start          # production
+copy .env.example .env      # macOS/Linux: cp .env.example .env
 ```
 
-Server runs at: **http://localhost:3001**
+Edit `.env` and set your MySQL password (and any other values listed in `.env.example`):
+
+```
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_NAME=beatbox
+```
+
+Then start the server:
+
+```
+npm start
+```
+
+Check it at http://localhost:3001/api/health
 
 ### 3. Frontend
 
-The frontend is served automatically by the Express server.
-Open **http://localhost:3001** in your browser.
+In a second terminal:
 
-**Demo credentials:**
-- Email: `demo@beatbox.com`
-- Password: `password123`
+```
+cd frontend
+npm install
+npm run dev
+```
 
----
+Open http://localhost:5173. In development, Vite proxies `/api` requests to the backend on port 3001, so no CORS setup is needed.
 
-## API Endpoints
+### Demo login
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | /api/auth/register | — | Register new user |
-| POST | /api/auth/login | — | Login → returns JWT |
-| GET | /api/songs | — | All songs (filter: ?genre=&search=) |
-| GET | /api/songs/top | — | Top 10 most played |
-| GET | /api/songs/:id | — | Single song details |
-| POST | /api/songs/:id/play | ✅ | Log play to history |
-| POST | /api/songs/:id/like | ✅ | Like a song |
-| DELETE | /api/songs/:id/like | ✅ | Unlike a song |
-| GET | /api/artists | — | All artists |
-| GET | /api/artists/:id | — | Artist with albums & songs |
-| GET | /api/genres | — | All genres |
-| GET | /api/playlists | ✅ | User's playlists |
-| GET | /api/playlists/:id | ✅ | Playlist with songs |
-| POST | /api/playlists | ✅ | Create playlist |
-| POST | /api/playlists/:id/songs | ✅ | Add song to playlist |
-| DELETE | /api/playlists/:id/songs/:sid | ✅ | Remove song from playlist |
-| DELETE | /api/playlists/:id | ✅ | Delete playlist |
-| GET | /api/users/me | ✅ | User profile |
-| GET | /api/users/me/liked | ✅ | Liked songs |
-| GET | /api/users/me/history | ✅ | Play history |
-| POST | /api/users/me/pay | ✅ | Make payment → upgrades to premium |
+Seeded users all have the password `password123`. See `database/seed.sql` for their email addresses.
 
----
+## Database design
 
-## Who Built What
+11 tables, normalized to 3NF:
 
-| Member | Part | Files to explain |
-|--------|------|-----------------|
-| Jugraj Bhatia | Project Manager + Frontend | `frontend/public/index.html` |
-| Sabhya Kumar | DB Designer + Admin | `database/schema.sql` (DDL, indexes, normalization) |
-| Dhareet Shah | Frontend + SQL Dev | `routes/songs.js` + playlist pages in frontend |
-| Adit Tambe | Testing + Docs | `database/queries.sql`, this README |
-| Ashman Nandan | ER + Schema + SQL | `database/schema.sql` (ER → schema mapping), `queries.sql` |
-| Samarth Khurana | Backend + DB | `backend/server.js`, `routes/` |
-| Shreyas Prabhu | Backend + DB Admin | `routes/users.js` (transactions), trigger in schema.sql |
+| Table | Purpose |
+|-------|---------|
+| `genre`, `artist`, `album`, `song` | Music catalogue |
+| `user`, `payment` | Accounts and subscriptions |
+| `playlist`, `play_history` | User activity |
+| `playlist_song`, `likes`, `performs` | Many-to-many junction tables (composite primary keys) |
+
+```mermaid
+erDiagram
+    GENRE ||--o{ SONG : categorizes
+    ARTIST ||--o{ ALBUM : releases
+    ARTIST }o--o{ SONG : performs
+    ALBUM ||--o{ SONG : contains
+    USER ||--o{ PAYMENT : makes
+    USER ||--o{ PLAYLIST : creates
+    USER }o--o{ SONG : likes
+    USER ||--o{ PLAY_HISTORY : listens
+    SONG ||--o{ PLAY_HISTORY : "played in"
+    PLAYLIST }o--o{ SONG : includes
+```
+
+## DBMS concepts demonstrated
+
+| Concept | Where |
+|---------|-------|
+| DDL, constraints, foreign keys with `CASCADE` / `SET NULL` | `schema.sql` |
+| Normalization (3NF) | Genres, artists and albums in their own tables |
+| Many-to-many relationships | `playlist_song`, `likes`, `performs` |
+| Indexes | Five custom indexes in `schema.sql` |
+| Trigger | `after_payment_insert` upgrades a user to premium |
+| Transaction (`BEGIN` / `COMMIT` / `ROLLBACK`) | `POST /api/users/me/pay` |
+| Joins (inner and left), aggregates, `GROUP BY` / `HAVING` | Songs routes, `queries.sql` |
+| Subquery and anti-join | `queries.sql` |
+| Parameterized queries (SQL injection safe) | All route files |
+
+## API overview
+
+| Area | Endpoints |
+|------|-----------|
+| Auth | `POST /api/auth/register`, `POST /api/auth/login` |
+| Songs | `GET /api/songs`, `GET /api/songs/top`, `GET /api/songs/:id`, `POST /api/songs/:id/play`, `POST` and `DELETE /api/songs/:id/like` |
+| Artists | `GET /api/artists`, `GET /api/artists/:id` |
+| Genres | `GET /api/genres`, `GET /api/genres/:id/songs` |
+| Playlists (auth) | `GET` and `POST /api/playlists`, `GET` and `DELETE /api/playlists/:id`, `POST /api/playlists/:id/songs`, `DELETE /api/playlists/:id/songs/:sid` |
+| Users (auth) | `GET /api/users/me`, `/me/liked`, `/me/history`, `/me/payments`, `POST /me/pay` |
+
+Endpoints marked "auth" need an `Authorization: Bearer <token>` header.
+
+## Production build
+
+```
+cd frontend
+npm run build
+```
+
+This creates `frontend/dist`. To serve the built app from Express, point the static folder and SPA fallback in `backend/server.js` at `frontend/dist`.
+
+## Troubleshooting
+
+- **`Access denied for user 'root'`**: `backend/.env` is missing or has the wrong `DB_PASSWORD`. Restart the backend after editing it.
+- **`Unknown database 'beatbox'`**: run `schema.sql` and `seed.sql` first.
+- **Garbled characters in album titles**: the seed file was loaded with the wrong encoding. Re-run `seed.sql` from MySQL Workbench.
